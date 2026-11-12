@@ -1,10 +1,8 @@
-import { fetchOwnedGames } from "./adapters/steam/fetchOwnedGames";
-import {fetchWishlist} from "./adapters/steam/fetchWishlist";
-import {compareProfiles, type Profile} from "./domain/comparaison";
-import {fetchGameDetails} from "./adapters/steam/fetchGameDetails";
 import type {GameDetails, Price} from "./domain/gameDetails";
-import {filterMultiplayer} from "./domain/filterMultiplayer";
-import {sortByPrice} from "./domain/sortByPrice";
+import {SteamLibraryProvider} from "./adapters/steam/steamLibraryProvider";
+import {SteamWishlistProvider} from "./adapters/steam/steamWishlistProvider";
+import {SteamGameDetailsProvider} from "./adapters/steam/steamGameDetailsProvider";
+import {findGamesToPlay} from "./domain/findGamesToPlay";
 
 // récupérer les deux SteamID passés en ligne de commande
 const [idA, idB] = process.argv.slice(2);
@@ -14,49 +12,14 @@ if (!idA || !idB ) {
     throw new Error("Il manque un id")
 }
 
-// récupérer les deux bibliothèques
-const [libraryA, wishlistA, libraryB, wishlistB] = await Promise.all([
-    fetchOwnedGames(idA),
-    fetchWishlist(idA),
-    fetchOwnedGames(idB),
-    fetchWishlist(idB)]);
+// Brancher les fournisseurs Steam sur le service
+const providers = {
+    library: new SteamLibraryProvider(),
+    wishlist: new SteamWishlistProvider(),
+    details: new SteamGameDetailsProvider(),
+};
 
-const profileA : Profile = {library: libraryA, wishlist: wishlistA}
-const profileB : Profile = {library: libraryB, wishlist: wishlistB}
-
-
-const result =  compareProfiles(profileA, profileB);
-
-const ids = new Set([
-    ...result.commonGames.map(game => game.id),
-    ...result.ownedByAWishedByB.map(game => game.id),
-    ...result.ownedByBWishedByA.map(game => game.id),
-    ...result.sharedWishlist,
-]);
-
-const allDetails = await Promise.all([...ids].map(id => fetchGameDetails(id)));
-
-const detailsById = new Map<string, GameDetails>();
-for (const details of allDetails) {
-    if (details) {
-        detailsById.set(details.id, details);
-    }
-}
-
-// Retrouve les détails de chaque id ; les jeux introuvables sont ignorés
-function detailsOf(ids: string[]): GameDetails[] {
-    return ids
-        .map(id => detailsById.get(id))
-        .filter(details => details !== undefined);
-}
-
-// Les quatre listes finales : détails → multijoueur seulement → tri
-const commonGames = filterMultiplayer(detailsOf(result.commonGames.map(game => game.id)))
-    .toSorted((a, b) => a.name.localeCompare(b.name));
-const ownedByAWishedByB = sortByPrice(filterMultiplayer(detailsOf(result.ownedByAWishedByB.map(game => game.id))));
-const ownedByBWishedByA = sortByPrice(filterMultiplayer(detailsOf(result.ownedByBWishedByA.map(game => game.id))));
-const sharedGames = sortByPrice(filterMultiplayer(detailsOf(result.sharedWishlist)));
-
+const report = await findGamesToPlay(idA, idB, providers);
 
 const euros = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
 
@@ -90,7 +53,7 @@ function printGames(title: string, games: GameDetails[], showPrice: boolean): vo
     }
 }
 
-printGames("🎮 Jeux multi en commun", commonGames, false);
-printGames("🎁 A possède des jeux de la wishlist de B", ownedByAWishedByB, true);
-printGames("🎁 B possède des jeux de la wishlist de A", ownedByBWishedByA, true);
-printGames("💸 Dans les deux wishlists", sharedGames, true);
+printGames("🎮 Jeux multi en commun", report.commonGames, false);
+printGames("🎁 A possède des jeux de la wishlist de B", report.ownedByAWishedByB, true);
+printGames("🎁 B possède des jeux de la wishlist de A", report.ownedByBWishedByA, true);
+printGames("💸 Dans les deux wishlists", report.sharedWishlist, true);
