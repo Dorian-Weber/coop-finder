@@ -39,7 +39,7 @@ describe("findGamesToPlay", () => {
             details: [
                 makeGameDetails({ id: "1", name: "Skyrim", isMultiplayer: false }),
                 makeGameDetails({ id: "2", name: "Celeste", isMultiplayer: false }),
-                makeGameDetails({ id: "3", name: "Hollow knight", isMultiplayer: true }),
+                makeGameDetails({ id: "3", name: "Hollow knight", isMultiplayer: false }),
             ],
         });
 

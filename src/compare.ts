@@ -11,10 +11,14 @@ const [idA, idB] = process.argv.slice(2);
 if (!idA || !idB ) {
     throw new Error("Il manque un id")
 }
+const apiKey = process.env.STEAM_API_KEY;
+if (!apiKey) {
+    throw new Error("STEAM_API_KEY manquant dans le fichier .env");
+}
 
 // Brancher les fournisseurs Steam sur le service
 const providers = {
-    library: new SteamLibraryProvider(),
+    library: new SteamLibraryProvider(apiKey),
     wishlist: new SteamWishlistProvider(),
     details: new SteamGameDetailsProvider(),
 };
