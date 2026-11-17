@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "worker:dev": "wrangler dev",
     "worker:deploy": "wrangler deploy",
-    "worker:types": "wrangler types"
+    "worker:types": "wrangler types",
+    "register": "tsx --env-file=.dev.vars scripts/registerCommands.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261117.1",
