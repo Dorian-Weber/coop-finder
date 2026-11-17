@@ -1,0 +1,8 @@
+# Configuration du Worker Cloudflare (le bot Discord)
+name = "coop-finder"
+main = "src/index.ts"
+compatibility_date = "2026-11-01"
+
+# Les secrets (clés, token) ne vont PAS ici :
+# - en local : dans .dev.vars (ignoré par Git)
+# - en production : avec `npx wrangler secret put NOM`

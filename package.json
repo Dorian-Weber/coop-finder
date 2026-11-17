@@ -7,12 +7,17 @@
   "scripts": {
     "dev": "tsx --env-file=.env",
     "test": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy",
+    "worker:types": "wrangler types"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261117.1",
     "@types/node": "^26.6.5",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.12"
+    "vitest": "^4.1.12",
+    "wrangler": "^4.163.0"
   }
 }
