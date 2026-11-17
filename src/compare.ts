@@ -1,8 +1,9 @@
-import type {GameDetails, Price} from "./domain/gameDetails";
+import type {GameDetails} from "./domain/gameDetails";
 import {SteamLibraryProvider} from "./adapters/steam/steamLibraryProvider";
 import {SteamWishlistProvider} from "./adapters/steam/steamWishlistProvider";
 import {SteamGameDetailsProvider} from "./adapters/steam/steamGameDetailsProvider";
 import {findGamesToPlay} from "./domain/findGamesToPlay";
+import {formatPrice} from "./presentation/formatPrice";
 
 // récupérer les deux SteamID passés en ligne de commande
 const [idA, idB] = process.argv.slice(2);
@@ -24,23 +25,6 @@ const providers = {
 };
 
 const report = await findGamesToPlay(idA, idB, providers);
-
-const euros = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
-
-function formatPrice(price: Price): string {
-    switch (price.kind) {
-        case "free":
-            return "gratuit";
-        case "paid": {
-            const amount = euros.format(price.finalCents / 100);
-            return price.discountPercent > 0
-                ? `${amount} (-${price.discountPercent} %)`
-                : amount;
-        }
-        case "unknown":
-            return "Non référencé";
-    }
-}
 
 
 function printGames(title: string, games: GameDetails[], showPrice: boolean): void {
