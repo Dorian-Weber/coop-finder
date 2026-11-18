@@ -116,8 +116,8 @@ scripts/           enregistrement des commandes Discord
 ### 1. Cloner et installer
 
 ```bash
-git clone https://github.com/Dorian-Weber/coop-inder.git
-cd coop-inder
+git clone https://github.com/Dorian-Weber/coop-finder.git
+cd coop-finder
 npm install
 ```
 

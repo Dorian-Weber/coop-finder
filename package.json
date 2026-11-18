@@ -1,5 +1,5 @@
 {
-  "name": "steam-match",
+  "name": "coop-finder",
   "version": "0.1.0",
   "description": "Bot Discord pour trouver à quoi jouer entre amis sur Steam",
   "type": "module",
