@@ -6,7 +6,8 @@ export async function editOriginalResponse(applicationId: string, interactionTok
     const response = await fetch(url, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
+        // allowed_mentions vide : les mentions s'affichent, mais ne notifient personne
+        body: JSON.stringify({ content, allowed_mentions: { parse: [] } }),
     });
 
     if (!response.ok) {

@@ -1,7 +1,10 @@
-import { verifyKey, InteractionType, InteractionResponseType } from "discord-interactions";
-import { getOption, type Interaction } from "./discord/interaction";
-import { JOUER_COMMAND } from "./discord/commands";
+import { verifyKey, InteractionType, InteractionResponseType, InteractionResponseFlags } from "discord-interactions";
+import { getOption, getUserId, type Interaction } from "./discord/interaction";
+import { JOUER_COMMAND, LIER_COMMAND, DELIER_COMMAND } from "./discord/commands";
 import { handleJouer } from "./discord/handleJouer";
+import { handleLier } from "./discord/handleLier";
+import { handleDelier } from "./discord/handleDelier";
+import { D1UserLinkRepository } from "./adapters/d1/d1UserLinkRepository";
 
 export default {
     async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
@@ -30,25 +33,73 @@ export default {
             return Response.json({ type: InteractionResponseType.PONG });
         }
 
-        // 4. La commande /jouer
+        // 4. La commande /jouer @joueur
         if (interaction.type === InteractionType.APPLICATION_COMMAND && interaction.data?.name === JOUER_COMMAND.name) {
-            const steamIdA = getOption(interaction, "steam_a");
-            const steamIdB = getOption(interaction, "steam_b");
+            const authorId = getUserId(interaction);
+            const friendId = getOption(interaction, "joueur");
+            if (!authorId || !friendId) {
+                return ephemeralMessage("Il faut mentionner la personne avec qui tu veux jouer.");
+            }
 
-            if (!steamIdA || !steamIdB) {
-                return Response.json({
-                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    data: { content: "Il faut indiquer deux SteamID." },
-                });
+            const repository = new D1UserLinkRepository(env.DB);
+            const [authorSteamId, friendSteamId] = await Promise.all([
+                repository.getSteamId(authorId),
+                repository.getSteamId(friendId),
+            ]);
+
+            if (!authorSteamId) {
+                return ephemeralMessage("Tu n'as pas encore lié ton compte Steam : utilise d'abord `/lier`.");
+            }
+            if (!friendSteamId) {
+                return ephemeralMessage(`<@${friendId}> n'a pas encore lié son compte Steam : il doit d'abord utiliser \`/lier\`.`);
             }
 
             // Le travail continue en arrière-plan après la réponse
-            ctx.waitUntil(handleJouer({ steamIdA, steamIdB, interactionToken: interaction.token }, env));
+            ctx.waitUntil(handleJouer({
+                steamIdA: authorSteamId,
+                steamIdB: friendSteamId,
+                labelA: `<@${authorId}>`,
+                labelB: `<@${friendId}>`,
+                interactionToken: interaction.token,
+            }, env));
 
             // Réponse immédiate : Discord affiche « réfléchit… »
             return Response.json({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
         }
 
+        // 5. Les commandes /lier et /delier : réponses visibles uniquement par l'auteur (« éphémères »)
+        if (interaction.type === InteractionType.APPLICATION_COMMAND) {
+            const discordUserId = getUserId(interaction);
+            if (!discordUserId) {
+                return new Response("Utilisateur introuvable", { status: 400 });
+            }
+
+            if (interaction.data?.name === LIER_COMMAND.name) {
+                const input = getOption(interaction, "compte") ?? "";
+                ctx.waitUntil(handleLier({ discordUserId, input, interactionToken: interaction.token }, env));
+                return Response.json({
+                    type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+                    data: { flags: InteractionResponseFlags.EPHEMERAL },
+                });
+            }
+
+            if (interaction.data?.name === DELIER_COMMAND.name) {
+                const content = await handleDelier(discordUserId, env);
+                return Response.json({
+                    type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    data: { content, flags: InteractionResponseFlags.EPHEMERAL },
+                });
+            }
+        }
+
         return new Response("Interaction non gérée", { status: 400 });
     },
 };
+
+// Réponse immédiate visible uniquement par l'auteur de la commande
+function ephemeralMessage(content: string): Response {
+    return Response.json({
+        type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+        data: { content, flags: InteractionResponseFlags.EPHEMERAL },
+    });
+}

@@ -9,6 +9,8 @@ import { editOriginalResponse } from "./editOriginalResponse";
 export interface JouerRequest {
     steamIdA: string;
     steamIdB: string;
+    labelA: string;             // comment désigner chaque joueur dans le message (mention Discord)
+    labelB: string;
     interactionToken: string;
 }
 
@@ -23,7 +25,7 @@ export async function handleJouer(request: JouerRequest, env: Env): Promise<void
             details: new SteamGameDetailsProvider(),
         };
         const report = await findGamesToPlay(request.steamIdA, request.steamIdB, providers);
-        content = formatReport(report, request.steamIdA, request.steamIdB);
+        content = formatReport(report, request.labelA, request.labelB);
     } catch (error) {
         // Sans ça, l'utilisateur resterait bloqué sur « réfléchit… »
         console.error(error);
