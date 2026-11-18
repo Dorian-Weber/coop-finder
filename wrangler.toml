@@ -6,3 +6,9 @@ compatibility_date = "2026-11-01"
 # Les secrets (clés, token) ne vont PAS ici :
 # - en local : dans .dev.vars (ignoré par Git)
 # - en production : avec `npx wrangler secret put NOM`
+
+# Base de données D1 : accessible dans le code via env.DB
+[[d1_databases]]
+binding = "DB"
+database_name = "coop-finder"
+database_id = "5fdf6953-e349-49f0-aa64-ea9b2e1cd80c"
