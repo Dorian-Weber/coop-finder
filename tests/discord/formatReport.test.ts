@@ -58,6 +58,17 @@ describe("formatReport", () => {
         expect(message).not.toContain(`• Among Us — `);
     });
 
+    it("affiche « Pas encore sorti » pour un jeu à venir sans prix", () => {
+        const report: PlayTogetherReport = {
+            ...emptyReport,
+            sharedWishlist: [makeGameDetails({ id: "1", name: "Wyldheart", price: { kind: "unknown" }, status: "coming_soon" })],
+        };
+
+        const message = formatReport(report, "Alice", "Bob");
+
+        expect(message).toContain("• Wyldheart — Pas encore sorti");
+    });
+
     it("signale les jeux en accès anticipé", () => {
         const report: PlayTogetherReport = {
             ...emptyReport,

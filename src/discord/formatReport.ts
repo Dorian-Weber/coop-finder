@@ -42,12 +42,20 @@ function formatSection(emoji: string, title: string, games: GameDetails[], showP
 function formatGameLine(game: GameDetails, showPrice: boolean): string {
     let line = `• ${game.name}`;
     if (showPrice) {
-        line += ` — ${formatPrice(game.price)}`;
+        line += ` — ${formatGamePrice(game)}`;
     }
     if (game.status === "early_access") {
         line += " · Accès anticipé";
     }
     return line;
+}
+
+// Un jeu sans prix qui n'est pas encore sorti : on le dit plutôt que « prix indisponible »
+function formatGamePrice(game: GameDetails): string {
+    if (game.price.kind === "unknown" && game.status === "coming_soon") {
+        return "Pas encore sorti";
+    }
+    return formatPrice(game.price);
 }
 
 function formatFreeOnlineGames(): string {
