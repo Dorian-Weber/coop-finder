@@ -7,15 +7,20 @@ import { FREE_ONLINE_GAMES } from "../presentation/freeOnlineGame";
 const MAX_GAMES_PER_SECTION = 10;
 
 // Transforme le rapport en message Discord (markdown Discord)
-export function formatReport(report: PlayTogetherReport, playerA: string, playerB: string): string {
+export function formatReport(
+    report: PlayTogetherReport,
+    playerA: string,
+    playerB: string,
+    skippedGamesCount = 0,   // jeux non vérifiés auprès de Steam (limite d'appels)
+): string {
     const sections = [
         formatSection("🎮", "Jeux multi en commun", report.commonGames, false),
         formatSection("🎁", `${playerA} possède des jeux de la wishlist ${deOrD(playerB)}`, report.ownedByAWishedByB, true),
         formatSection("🎁", `${playerB} possède des jeux de la wishlist ${deOrD(playerA)}`, report.ownedByBWishedByA, true),
         formatSection("💸", "Dans vos deux wishlists", report.sharedWishlist, true),
     ];
-    if (report.skippedGamesCount > 0) {
-        sections.push(`⏳ ${report.skippedGamesCount} jeu(x) n'ont pas pu être analysés cette fois-ci (trop de jeux à vérifier d'un coup).`);
+    if (skippedGamesCount > 0) {
+        sections.push(`⏳ ${skippedGamesCount} jeu(x) n'ont pas encore pu être vérifiés auprès de Steam : relance la commande pour un résultat plus complet.`);
     }
     sections.push(formatFreeOnlineGames());
     return sections.join("\n\n");
