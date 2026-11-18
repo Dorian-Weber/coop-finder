@@ -1,6 +1,6 @@
 import type { Game } from "./game";
 import type { GameDetails } from "./gameDetails";
-import { compareProfiles } from "./comparaison";
+import { compareProfiles } from "./compareProfiles";
 import { filterMultiplayer } from "./filterMultiplayer";
 import { sortByPrice } from "./sortByPrice";
 import type { LibraryProvider } from "../ports/libraryProvider";

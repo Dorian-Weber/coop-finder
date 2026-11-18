@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {compareProfiles, type Profile} from "../../src/domain/comparaison";
+import {compareProfiles, type Profile} from "../../src/domain/compareProfiles";
 import {makeGame} from "../helpers/makeGame";
 
 describe("compareProfiles", () => {

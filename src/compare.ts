@@ -5,13 +5,15 @@ import {SteamGameDetailsProvider} from "./adapters/steam/steamGameDetailsProvide
 import {findGamesToPlay} from "./domain/findGamesToPlay";
 import {formatPrice} from "./presentation/formatPrice";
 
-// récupérer les deux SteamID passés en ligne de commande
-const [idA, idB] = process.argv.slice(2);
+// Point d'entrée « terminal » : compare deux comptes Steam sans passer par Discord.
+// Usage : npm run dev src/compare.ts <steamIdA> <steamIdB>
 
-// s'il en manque un, afficher comment utiliser le script et s'arrêter
-if (!idA || !idB ) {
-    throw new Error("Il manque un id")
+const [idA, idB] = process.argv.slice(2);
+if (!idA || !idB) {
+    console.error("Usage : npm run dev src/compare.ts <steamIdA> <steamIdB>");
+    process.exit(1);
 }
+
 const apiKey = process.env.STEAM_API_KEY;
 if (!apiKey) {
     throw new Error("STEAM_API_KEY manquant dans le fichier .env");
@@ -26,7 +28,7 @@ const providers = {
 
 const report = await findGamesToPlay(idA, idB, providers);
 
-
+// Affichage dans le terminal (le bot Discord a son propre formateur)
 function printGames(title: string, games: GameDetails[], showPrice: boolean): void {
     console.log(`\n${title} (${games.length}) :`);
     for (const game of games) {

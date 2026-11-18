@@ -1,7 +1,7 @@
 import { describe, it , expect} from "vitest";
 import {makeGame} from "../helpers/makeGame";
 import {findGamesToPlay} from "../../src/domain/findGamesToPlay";
-import {makeFakeProviders} from "../helpers/fakeProvider";
+import {makeFakeProviders} from "../helpers/fakeProviders";
 import {makeGameDetails} from "../helpers/makeGameDetails";
 
 describe("findGamesToPlay", () => {

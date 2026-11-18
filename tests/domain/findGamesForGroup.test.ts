@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { findGamesForGroup } from "../../src/domain/findGamesForGroup";
-import { makeFakeProviders } from "../helpers/fakeProvider";
+import { makeFakeProviders } from "../helpers/fakeProviders";
 import { makeGame } from "../helpers/makeGame";
 import { makeGameDetails } from "../helpers/makeGameDetails";
 
