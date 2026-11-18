@@ -11,6 +11,7 @@ const emptyReport: PlayTogetherReport = {
     ownedByAWishedByB: [],
     ownedByBWishedByA: [],
     sharedWishlist: [],
+    skippedGamesCount: 0,
 };
 
 const DEEP_ROCK_PRICE: Price = { kind: "paid", finalCents: 599, initialCents: 2399, discountPercent: 75 };
@@ -112,5 +113,16 @@ describe("formatReport", () => {
 
         expect(message).toContain("• Codenames — <https://codenames.game>");
         expect(message.trimEnd().endsWith("<https://skribbl.io>")).toBe(true);
+    });
+    it("signale les jeux qui n'ont pas pu être analysés", () => {
+        const message = formatReport({ ...emptyReport, skippedGamesCount: 12 }, "Alice", "Bob");
+
+        expect(message).toContain("⏳ 12 jeu(x) n'ont pas pu être analysés");
+    });
+
+    it("ne mentionne rien quand tous les jeux ont été analysés", () => {
+        const message = formatReport(emptyReport, "Alice", "Bob");
+
+        expect(message).not.toContain("⏳");
     });
 });

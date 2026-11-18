@@ -20,12 +20,20 @@ export interface PlayTogetherReport {
     ownedByAWishedByB: GameDetails[];    // multi, triés par prix
     ownedByBWishedByA: GameDetails[];    // multi, triés par prix
     sharedWishlist: GameDetails[];       // multi, triés par prix
+    skippedGamesCount: number;           // jeux non analysés faute de budget (voir maxDetailsLookups)
+}
+
+export interface FindGamesOptions {
+    // Nombre maximal de jeux dont on demande les détails ; illimité par défaut.
+    // Utile quand l'environnement limite le nombre d'appels réseau par requête.
+    maxDetailsLookups?: number;
 }
 
 export async function findGamesToPlay(
     playerA: string,
     playerB: string,
     providers: Providers,
+    options: FindGamesOptions = {},
 ): Promise<PlayTogetherReport> {
     // 1. Bibliothèques et wishlists des deux joueurs, en parallèle
     const [libraryA, wishlistA, libraryB, wishlistB] = await Promise.all([
@@ -41,14 +49,18 @@ export async function findGamesToPlay(
         { library: libraryB, wishlist: wishlistB },
     );
 
-    // 3. Les détails, une seule fois par jeu, uniquement pour les jeux issus des croisements
-    const ids = new Set([
-        ...idsOf(result.commonGames),
+    // 3. Les détails, une seule fois par jeu, uniquement pour les jeux issus des croisements.
+    //    Ordre de priorité si le budget est limité : wishlist commune, jeux voulus par l'autre, jeux en commun.
+    const prioritizedIds = [...new Set([
+        ...result.sharedWishlist,
         ...idsOf(result.ownedByAWishedByB),
         ...idsOf(result.ownedByBWishedByA),
-        ...result.sharedWishlist,
-    ]);
-    const allDetails = await Promise.all([...ids].map(id => providers.details.getGameDetails(id)));
+        ...idsOf(result.commonGames),
+    ])];
+    const maxLookups = options.maxDetailsLookups ?? prioritizedIds.length;
+    const idsToLookup = prioritizedIds.slice(0, maxLookups);
+
+    const allDetails = await Promise.all(idsToLookup.map(id => providers.details.getGameDetails(id)));
 
     const detailsById = new Map<string, GameDetails>();
     for (const details of allDetails) {
@@ -71,6 +83,7 @@ export async function findGamesToPlay(
         ownedByAWishedByB: sortByPrice(filterMultiplayer(detailsOf(idsOf(result.ownedByAWishedByB)))),
         ownedByBWishedByA: sortByPrice(filterMultiplayer(detailsOf(idsOf(result.ownedByBWishedByA)))),
         sharedWishlist: sortByPrice(filterMultiplayer(detailsOf(result.sharedWishlist))),
+        skippedGamesCount: prioritizedIds.length - idsToLookup.length,
     };
 }
 

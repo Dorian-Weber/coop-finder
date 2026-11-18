@@ -13,8 +13,11 @@ export function formatReport(report: PlayTogetherReport, playerA: string, player
         formatSection("🎁", `${playerA} possède des jeux de la wishlist ${deOrD(playerB)}`, report.ownedByAWishedByB, true),
         formatSection("🎁", `${playerB} possède des jeux de la wishlist ${deOrD(playerA)}`, report.ownedByBWishedByA, true),
         formatSection("💸", "Dans vos deux wishlists", report.sharedWishlist, true),
-        formatFreeOnlineGames(),
     ];
+    if (report.skippedGamesCount > 0) {
+        sections.push(`⏳ ${report.skippedGamesCount} jeu(x) n'ont pas pu être analysés cette fois-ci (trop de jeux à vérifier d'un coup).`);
+    }
+    sections.push(formatFreeOnlineGames());
     return sections.join("\n\n");
 }
 

@@ -135,4 +135,39 @@ describe("findGamesToPlay", () => {
         const result = await findGamesToPlay("A", "B", providers);
         expect(result.sharedWishlist.map(game => game.id)).toEqual(["6"]);
     });
+    it("respecte le budget de détails en priorisant la wishlist commune", async () => {
+        const providers = makeFakeProviders({
+            libraries: {
+                A: [makeGame(1, "Among Us"), makeGame(2, "Portal 2")],
+                B: [makeGame(1, "Among Us"), makeGame(2, "Portal 2")],
+            },
+            wishlists: {
+                A: ["9"],
+                B: ["9"],
+            },
+            details: [
+                makeGameDetails({ id: "1", name: "Among Us" }),
+                makeGameDetails({ id: "2", name: "Portal 2" }),
+                makeGameDetails({ id: "9", name: "Deep Rock Galactic" }),
+            ],
+        });
+
+        const result = await findGamesToPlay("A", "B", providers, { maxDetailsLookups: 2 });
+
+        expect(result.sharedWishlist.map(game => game.id)).toEqual(["9"]);   // priorité 1 : gardé
+        expect(result.commonGames).toHaveLength(1);                         // un seul des deux jeux en commun analysé
+        expect(result.skippedGamesCount).toBe(1);
+    });
+
+    it("indique zéro jeu ignoré quand le budget n'est pas limité", async () => {
+        const providers = makeFakeProviders({
+            libraries: { A: [makeGame(1, "Among Us")], B: [makeGame(1, "Among Us")] },
+            wishlists: { A: [], B: [] },
+            details: [makeGameDetails({ id: "1", name: "Among Us" })],
+        });
+
+        const result = await findGamesToPlay("A", "B", providers);
+
+        expect(result.skippedGamesCount).toBe(0);
+    });
 });
