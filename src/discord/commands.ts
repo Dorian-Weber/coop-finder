@@ -36,4 +36,18 @@ export const DELIER_COMMAND = {
     description: "Supprime l'association entre ton compte Steam et ton compte Discord",
 };
 
-export const ALL_COMMANDS = [JOUER_COMMAND, LIER_COMMAND, DELIER_COMMAND];
+// Jusqu'à 9 amis mentionnés, plus l'auteur : 10 personnes au maximum
+export const MAX_GROUP_FRIENDS = 9;
+
+export const GROUPE_COMMAND = {
+    name: "groupe",
+    description: "Trouve à quoi jouer en groupe (jusqu'à 10 personnes, toi compris)",
+    options: Array.from({ length: MAX_GROUP_FRIENDS }, (_, i) => ({
+        type: USER_OPTION,
+        name: `joueur${i + 1}`,
+        description: i === 0 ? "Une personne du groupe" : "Une autre personne du groupe (facultatif)",
+        required: i === 0,
+    })),
+};
+
+export const ALL_COMMANDS = [JOUER_COMMAND, GROUPE_COMMAND, LIER_COMMAND, DELIER_COMMAND];

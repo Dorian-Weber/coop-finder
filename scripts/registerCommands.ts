@@ -8,21 +8,26 @@ if (!DISCORD_APPLICATION_ID || !DISCORD_TOKEN || !DISCORD_GUILD_ID) {
     throw new Error("DISCORD_APPLICATION_ID, DISCORD_TOKEN et DISCORD_GUILD_ID doivent être définis dans .dev.vars");
 }
 
-// Commandes de serveur : visibles instantanément, uniquement sur ce serveur
-const url = `https://discord.com/api/v10/applications/${DISCORD_APPLICATION_ID}/guilds/${DISCORD_GUILD_ID}/commands`;
+// Commandes de serveur : visibles instantanément, uniquement sur ces serveurs.
+// DISCORD_GUILD_ID peut contenir plusieurs identifiants séparés par des virgules.
+const guildIds = DISCORD_GUILD_ID.split(",").map(id => id.trim()).filter(id => id !== "");
 
-// PUT remplace toutes les commandes du serveur par cette liste
-const response = await fetch(url, {
-    method: "PUT",
-    headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bot ${DISCORD_TOKEN}`,
-    },
-    body: JSON.stringify(ALL_COMMANDS),
-});
+for (const guildId of guildIds) {
+    const url = `https://discord.com/api/v10/applications/${DISCORD_APPLICATION_ID}/guilds/${guildId}/commands`;
 
-if (!response.ok) {
-    throw new Error(`Échec de l'enregistrement : ${response.status} ${await response.text()}`);
+    // PUT remplace toutes les commandes du serveur par cette liste
+    const response = await fetch(url, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bot ${DISCORD_TOKEN}`,
+        },
+        body: JSON.stringify(ALL_COMMANDS),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Échec de l'enregistrement sur le serveur ${guildId} : ${response.status} ${await response.text()}`);
+    }
+
+    console.log(`${ALL_COMMANDS.length} commande(s) enregistrée(s) sur le serveur ${guildId}.`);
 }
-
-console.log(`${ALL_COMMANDS.length} commande(s) enregistrée(s) sur le serveur de test.`);

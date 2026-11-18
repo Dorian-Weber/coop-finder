@@ -1,8 +1,9 @@
 import { verifyKey, InteractionType, InteractionResponseType, InteractionResponseFlags } from "discord-interactions";
 import { getOption, getUserId, type Interaction } from "./discord/interaction";
-import { JOUER_COMMAND, LIER_COMMAND, DELIER_COMMAND } from "./discord/commands";
+import { JOUER_COMMAND, GROUPE_COMMAND, LIER_COMMAND, DELIER_COMMAND, MAX_GROUP_FRIENDS } from "./discord/commands";
 import { handleJouer } from "./discord/handleJouer";
 import { handleLier } from "./discord/handleLier";
+import { handleGroupe } from "./discord/handleGroupe";
 import { handleDelier } from "./discord/handleDelier";
 import { D1UserLinkRepository } from "./adapters/d1/d1UserLinkRepository";
 
@@ -67,6 +68,35 @@ export default {
             }, env));
 
             // Réponse immédiate : Discord affiche « réfléchit… »
+            return Response.json({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
+        }
+
+        // 4 bis. La commande /groupe @joueur1 … @joueur9
+        if (interaction.type === InteractionType.APPLICATION_COMMAND && interaction.data?.name === GROUPE_COMMAND.name) {
+            const authorId = getUserId(interaction);
+            if (!authorId) {
+                return new Response("Utilisateur introuvable", { status: 400 });
+            }
+
+            // L'auteur, puis les personnes mentionnées, sans doublon
+            const mentioned = Array.from({ length: MAX_GROUP_FRIENDS }, (_, i) => getOption(interaction, `joueur${i + 1}`))
+                .filter(id => id !== undefined);
+            const memberIds = [...new Set([authorId, ...mentioned])];
+            if (memberIds.length < 2) {
+                return ephemeralMessage("Mentionne au moins une autre personne que toi.");
+            }
+
+            const repository = new D1UserLinkRepository(env.DB);
+            const steamIds = await Promise.all(memberIds.map(id => repository.getSteamId(id)));
+
+            const notLinked = memberIds.filter((_, i) => steamIds[i] === undefined);
+            if (notLinked.length > 0) {
+                const who = notLinked.map(id => (id === authorId ? "toi" : `<@${id}>`)).join(", ");
+                return ephemeralMessage(`Ces personnes doivent d'abord lier leur compte Steam avec \`/lier\` : ${who}.`);
+            }
+
+            const players = memberIds.map((id, i) => ({ steamId: steamIds[i] as string, label: `<@${id}>` }));
+            ctx.waitUntil(handleGroupe({ players, interactionToken: interaction.token }, env));
             return Response.json({ type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE });
         }
 

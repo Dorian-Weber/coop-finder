@@ -4,7 +4,7 @@ import { formatPrice } from "../presentation/formatPrice";
 import { FREE_ONLINE_GAMES } from "../presentation/freeOnlineGame";
 
 // Au-delà, les jeux sont masqués : un message Discord est limité à 2 000 caractères
-const MAX_GAMES_PER_SECTION = 10;
+export const MAX_GAMES_PER_SECTION = 10;
 
 // Transforme le rapport en message Discord (markdown Discord)
 export function formatReport(
@@ -59,14 +59,14 @@ function formatGameLine(game: GameDetails, showPrice: boolean): string {
 }
 
 // Un jeu sans prix qui n'est pas encore sorti : on le dit plutôt que « prix indisponible »
-function formatGamePrice(game: GameDetails): string {
+export function formatGamePrice(game: GameDetails): string {
     if (game.price.kind === "unknown" && game.status === "coming_soon") {
         return "Pas encore sorti";
     }
     return formatPrice(game.price);
 }
 
-function formatFreeOnlineGames(): string {
+export function formatFreeOnlineGames(): string {
     const lines = ["🌐 **Et sinon, gratuit dans le navigateur :**"];
     for (const game of FREE_ONLINE_GAMES) {
         // Les chevrons empêchent Discord d'afficher un grand aperçu sous chaque lien

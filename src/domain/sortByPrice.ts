@@ -1,7 +1,7 @@
 import type {GameDetails, Price} from "./gameDetails";
 
 // Transforme un prix en nombre comparable : gratuit < payant < inconnu
-function priceSortKey(price: Price): number {
+export function priceSortKey(price: Price): number {
     switch (price.kind) {
         case "free":
             return -1;
