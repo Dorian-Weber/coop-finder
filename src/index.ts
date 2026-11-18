@@ -40,6 +40,9 @@ export default {
             if (!authorId || !friendId) {
                 return ephemeralMessage("Il faut mentionner la personne avec qui tu veux jouer.");
             }
+            if (authorId === friendId) {
+                return ephemeralMessage("Mentionne quelqu'un d'autre que toi pour trouver à quoi jouer ensemble.");
+            }
 
             const repository = new D1UserLinkRepository(env.DB);
             const [authorSteamId, friendSteamId] = await Promise.all([
