@@ -68,3 +68,10 @@ export type GetAppDetailsResponse = Record<string,
     | { success: true; data: SteamAppData }
     | { success: false }
 >;
+
+// --- ISteamUser/ResolveVanityURL ---
+export interface ResolveVanityUrlResponse {
+    response:
+        | { success: 1; steamid: string }
+        | { success: 42; message: string };
+}
